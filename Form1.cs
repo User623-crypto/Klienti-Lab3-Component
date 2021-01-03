@@ -55,17 +55,19 @@ namespace Klienti1
                                 String message = Encoding.UTF8.GetString(data);
                                 label1.BeginInvoke(new InvokeDelegate(InvokeMethod), "U dergua nga serveri");
                                 comboBox1.BeginInvoke(new InvokeDelegate(InvokeMethod2),message);
-
+                                
                             }
                             else
                             {
                                 //To do Download the file into the specified location
-                               // string extension = dosjaESelektuar.Split('.')[1];
-                               // string filename = System.IO.Path.GetTempFileName() + "." + extension; // Makes something like "C:\Temp\blah.tmp.pdf"
-                                string filename = downloadPath + "\\" + dosjaESelektuar;
+                                // string extension = dosjaESelektuar.Split('.')[1];
+                                // string filename = System.IO.Path.GetTempFileName() + "." + extension; // Makes something like "C:\Temp\blah.tmp.pdf"
+                                // string filename = downloadPath + "\\" + dosjaESelektuar;
+                                string filename = downloadPath;
                                 Console.WriteLine(filename);
                                 File.WriteAllBytes(filename, data);
                                 label1.BeginInvoke(new InvokeDelegate(InvokeMethod), "U dergua nga serveri. Shkarkimi me sukses Shkarko prap");
+                                MessageBox.Show("File-i u shkarkua", "Sukses");
 
                                 
                             }
@@ -87,24 +89,6 @@ namespace Klienti1
                 MessageBox.Show("Nuk lidhet dot me Serverin. Provo më vonë");
             }
             
-            /*serverStream = clientSocket.GetStream();
-            byte[] outStream = System.Text.Encoding.ASCII.GetBytes("Message from Client$");
-            serverStream.Write(outStream, 0, outStream.Length);
-            serverStream.Flush();
-
-            byte[] inStream = new byte[10025];
-            if (serverStream.CanRead)
-            {
-                serverStream.Read(inStream, 0, inStream.Length);
-                string returndata = System.Text.Encoding.ASCII.GetString(inStream);
-                msg("Data from Server : " + returndata);
-            }
-            else
-            {
-                label1.Text="Serveri u shkeput";
-                serverStream.Close();
-                clientSocket.Close();
-            }*/
            
         }
 
@@ -117,11 +101,14 @@ namespace Klienti1
             {
 
                 byte[] buffer = new byte[1024];
-                stream.Read(buffer, 0, buffer.Length);
-                recivedBytes.AddRange(buffer);//Shtohet ne fund te listes
+                int bytesRead = stream.Read(buffer, 0, buffer.Length);
+                byte[] correctBuffer = new byte[bytesRead];
+                Array.Copy(buffer, correctBuffer, bytesRead);
+
+                recivedBytes.AddRange(correctBuffer);//Shtohet ne fund te listes
             }
 
-            recivedBytes.RemoveAll(b => b == 0); //Njëri nga mesazhet nuk do te përmbushi dot 1024 => pjesa e pa përmbushur do të hiqet
+           // recivedBytes.RemoveAll(b => b == 0); //Njëri nga mesazhet nuk do te përmbushi dot 1024 => pjesa e pa përmbushur do të hiqet
 
             return recivedBytes.ToArray();
         }
@@ -157,39 +144,29 @@ namespace Klienti1
         private void button2_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog();
+            SaveFileDialog saveDialog = new SaveFileDialog();
+            this.dosjaESelektuar = comboBox1.Text;
+            string extension = dosjaESelektuar.Split('.')[1];
+            saveDialog.Title = "Save";
+            saveDialog.InitialDirectory = @"C:\";
+            saveDialog.Filter= "Default(*."+extension+ ")|*."+extension+'"';
             
-            if (fbd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-            { 
-                this.downloadPath = fbd.SelectedPath.ToString();
+            
+            
+            saveDialog.DefaultExt = extension;
+            if (saveDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                Console.WriteLine(saveDialog.FileName);
+                this.downloadPath = saveDialog.FileName;
+                /*this.downloadPath = fbd.SelectedPath.ToString();
                 this.dosjaESelektuar = comboBox1.Text;
                 Console.WriteLine(dosjaESelektuar);
                 write(stream, Encoding.UTF8.GetBytes(dosjaESelektuar));
+                button2.Hide();*/
+                write(stream, Encoding.UTF8.GetBytes(dosjaESelektuar));
                 button2.Hide();
-                
+
             }
         }
-
-        /*private void Form1_Load(object sender, EventArgs e)
-        {
-            msg("Client Started");
-            try
-            {
-                clientSocket.Connect("127.0.0.1", port);
-                label1.Text = "Client Socket Program - Server Connected ...";
-            }
-            catch (Exception)
-            {
-
-                label1.Text = "Client Socket Program - Server cant connect ...";
-            }
-           
-        }
-
-        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            clientSocket.Close();
-            serverStream.Close();
-
-        }*/
     }
 }
